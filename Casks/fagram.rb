@@ -1,6 +1,6 @@
 cask "fagram" do
-  version "2.3.6"
-  sha256 "0da635a472792ad6dbb91c19c4732dae1cd72f8a8d6f39cb20891a0aabce9769"
+  version "2.4.0"
+  sha256 "0a3236371d1323897daea05116092488f4268c93abf6f31404e4f3169bba36be"
 
   url "https://github.com/fagramdesktop/fadesktop/releases/download/#{version}/fagram-mac-#{version}.dmg"
   name "FAgram Desktop"
