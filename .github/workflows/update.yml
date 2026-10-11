@@ -1,0 +1,60 @@
+name: Update Cask
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version/tag to update to (leave blank for latest release)'
+        required: false
+        default: ''
+  repository_dispatch:
+    types: [release-published]
+
+jobs:
+  update-cask:
+    name: Update Homebrew Cask
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine Version and Calculate Checksum
+        run: |
+          VERSION="${{ github.event.inputs.version || github.event.client_payload.version }}"
+          if [ -z "$VERSION" ]; then
+            echo "Fetching latest release from fagramdesktop/fadesktop..."
+            VERSION=$(curl -s https://api.github.com/repos/fagramdesktop/fadesktop/releases/latest | jq -r .tag_name)
+          fi
+
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Error: Could not determine release version"
+            exit 1
+          fi
+
+          echo "Target version: $VERSION"
+          DMG_URL="https://github.com/fagramdesktop/fadesktop/releases/download/${VERSION}/fagram-mac-${VERSION}.dmg"
+          echo "Downloading DMG from $DMG_URL..."
+          curl -f -sL -o fagram.dmg "$DMG_URL"
+
+          SHA256=$(sha256sum fagram.dmg | awk '{print $1}')
+          echo "Calculated SHA256: $SHA256"
+
+          sed -i "s/version \".*\"/version \"$VERSION\"/" Casks/fagram.rb
+          sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/" Casks/fagram.rb
+
+          echo "Updated Casks/fagram.rb:"
+          cat Casks/fagram.rb
+
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet Casks/fagram.rb; then
+            echo "No changes to commit. Cask is already up to date."
+          else
+            git add Casks/fagram.rb
+            git commit -m "Update FAgram Cask to $VERSION"
+            git push
+          fi

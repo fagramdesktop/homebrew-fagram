@@ -1,0 +1,41 @@
+name: brew test-bot
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test-bot:
+    runs-on: macos-latest
+    permissions:
+      actions: read
+      checks: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Homebrew Bundler RubyGems
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.set-up-homebrew.outputs.gems-path }}
+          key: macos-rubygems-${{ steps.set-up-homebrew.outputs.gems-hash }}
+          restore-keys: macos-rubygems-
+
+      - run: brew test-bot --only-cleanup-before
+
+      - run: brew test-bot --only-setup
+
+      - run: brew test-bot --only-tap-syntax
+
+      - name: Test Cask Installation
+        run: |
+          brew install --cask fagramdesktop/fagram/fagram
+          test -d "/Applications/FAgram.app"
+          brew uninstall --cask fagram

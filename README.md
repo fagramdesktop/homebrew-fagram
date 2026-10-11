@@ -1,22 +1,17 @@
-# Homebrew Tap for FAgram Desktop
+# FAgram Desktop Tap
 
-This is the official Homebrew Tap for [FAgram Desktop](https://github.com/fagramdesktop/fadesktop), the unofficial desktop client based on Telegram Desktop.
+This tap exists as a convenient way to install [FAgram Desktop](https://github.com/fagramdesktop/fadesktop) on macOS.
 
-## Installation
-
-To install FAgram Desktop using Homebrew, first add this tap and then install the cask:
+## Usage
 
 ```bash
 brew tap fagramdesktop/fagram
+brew trust fagramdesktop/fagram
 brew install --cask fagram
 ```
 
-## Updates
-
-When a new release of FAgram Desktop is published on GitHub, this repository is automatically updated with the latest version and SHA256 hashes via GitHub Actions.
-
-You can update your installed application with:
+If macOS Gatekeeper blocks the application because it is not notarized by Apple, remove the quarantine attribute:
 
 ```bash
-brew upgrade fagram
+xattr -cr /Applications/FAgram.app
 ```
